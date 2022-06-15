@@ -1,0 +1,4 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader,force:hasRecordId">
+
+<c:orderConsumaBemLWC recordId="{!v.recordId}"></c:orderConsumaBemLWC>
+</aura:component>
