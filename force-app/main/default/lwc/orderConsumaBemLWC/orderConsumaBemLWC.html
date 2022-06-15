@@ -4,7 +4,7 @@
         <div class="slds-text-title">Cadastro do Cabeçalho do Pedido</div>
         <div class="slds-p-around_medium lgc-bg">
             <!-- Account Name -->
-            <lightning-input type="text" label="Account Name"  value="ACME Inc." disabled></lightning-input>
+            <lightning-input type="text" label="Account Name" value={accountName} disabled></lightning-input>
 
             <!-- Account Shipping Addresses -->
             <div class="slds-form-element">
@@ -12,8 +12,8 @@
                 <div class="slds-form-element__control">
                     <div class="slds-select_container">
                         <select class="slds-select" onchange={selectionChangeHandler} disabled={isPicklistDisabled}>
-                            <template for:each={options} for:item="option">
-                                <option key={option.label} class="uiInputSelectOption" value={option.value}>{option.value}</option>
+                            <template for:each={accountAddresses} for:item="accountAddress">
+                                <option key={accountAddress.Id} class="uiInputSelectOption" value={accountAddress.FullAddress}>{accountAddress.FullAddress}</option>
                             </template>
                         </select>
                     </div>
@@ -39,6 +39,8 @@
         
         </div>
     
-        <lightning-button variant="brand" label="Next" class="slds-m-left_x-small"></lightning-button>
+        <div>
+            <lightning-button variant="brand" label="Next" class="slds-m-left_x-small"></lightning-button>
+        </div>
     </lightning-quick-action-panel>
 </template>
