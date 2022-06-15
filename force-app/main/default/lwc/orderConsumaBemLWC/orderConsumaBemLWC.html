@@ -1,3 +1,44 @@
+<!-- sldsValidatorIgnore -->
 <template>
+    <lightning-quick-action-panel header="Create a New Order">
+        <div class="slds-text-title">Cadastro do Cabeçalho do Pedido</div>
+        <div class="slds-p-around_medium lgc-bg">
+            <!-- Account Name -->
+            <lightning-input type="text" label="Account Name"  value="ACME Inc." disabled></lightning-input>
+
+            <!-- Account Shipping Addresses -->
+            <div class="slds-form-element">
+                <label class="slds-form-element__label">Account Address</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-select_container">
+                        <select class="slds-select" onchange={selectionChangeHandler} disabled={isPicklistDisabled}>
+                            <template for:each={options} for:item="option">
+                                <option key={option.label} class="uiInputSelectOption" value={option.value}>{option.value}</option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Payment Conditions -->
+            <div class="slds-form-element">
+                <label class="slds-form-element__label">Payment Conditions</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-select_container">
+                        <select class="slds-select" onchange={selectionChangeHandler} disabled={isPicklistDisabled}>
+                            <template for:each={options} for:item="option">
+                                <option key={option.label} class="uiInputSelectOption" value={option.value}>{option.value}</option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Standart Pricebook -->
+            <lightning-input type="text" label="Pricebook" value="Standart Pricebook" disabled></lightning-input>
+        
+        </div>
     
+        <lightning-button variant="brand" label="Next" class="slds-m-left_x-small"></lightning-button>
+    </lightning-quick-action-panel>
 </template>
