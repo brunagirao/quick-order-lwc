@@ -26,8 +26,8 @@
                 <div class="slds-form-element__control">
                     <div class="slds-select_container">
                         <select class="slds-select" onchange={selectionChangeHandler} disabled={isPicklistDisabled}>
-                            <template for:each={options} for:item="option">
-                                <option key={option.label} class="uiInputSelectOption" value={option.value}>{option.value}</option>
+                            <template for:each={paymentConditions} for:item="paymentCondition">
+                                <option key={paymentCondition.Id} class="uiInputSelectOption" value={paymentCondition.Type}>{paymentCondition.Type}</option>
                             </template>
                         </select>
                     </div>
