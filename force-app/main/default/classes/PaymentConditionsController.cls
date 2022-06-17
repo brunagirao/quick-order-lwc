@@ -9,6 +9,10 @@
 ***************************************************************************************************/
 public with sharing class PaymentConditionsController {
     
+    /**
+    * Method that get Payment Conditions of the Org
+    * @return List<PaymentConditionsResponse> 
+    **/
     @AuraEnabled
     public static List<PaymentConditionsResponse> getPaymentConditions(){
         List<PaymentConditionsResponse> paymentConditionList = new List<PaymentConditionsResponse>();
@@ -25,7 +29,7 @@ public with sharing class PaymentConditionsController {
     }
 
     public class PaymentConditionsResponse {
-        @AuraEnabled public String Id {get; set;}
+        @AuraEnabled public String Id   {get; set;}
         @AuraEnabled public String Type {get; set;}
 
         public PaymentConditionsResponse(){}
