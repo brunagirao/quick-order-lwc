@@ -1,0 +1,60 @@
+<!-- sldsValidatorIgnore -->
+<template>
+    <lightning-quick-action-panel header="New Order">
+
+        <!-- Account Name -->
+        <div class="slds-p-bottom_small slds-p-top_small">
+            <lightning-input type="text" label="Account Name" value={accountName} readonly></lightning-input>
+        </div>
+
+        <!-- Standart Pricebook -->
+        <div class="slds-p-bottom_small">
+            <lightning-input type="text" label="Pricebook" value={pricebookName} readonly></lightning-input>
+        </div>
+
+        <!-- Account Shipping Addresses -->
+        <div class="slds-form-element slds-p-bottom_small">
+            <label class="slds-form-element__label">
+                <abbr class="slds-required" title="required">*</abbr>
+                Account Address
+            </label>
+            <div class="slds-form-element__control">
+                <div class="slds-select_container">
+                    <select id="accountAddresses" class="slds-select" required="" onchange={getSelectedAccountAddress}>
+                        <option value="">Select an option...</option>
+                        <template for:each={accountAddresses} for:item="accountAddress">
+                            <option key={accountAddress.Id} value={accountAddress.Id}>{accountAddress.FullAddress}</option>
+                        </template>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Payment Conditions -->
+        <div class="slds-form-element slds-p-bottom_small">
+            <label class="slds-form-element__label">
+                <abbr class="slds-required" title="required">*</abbr>
+                    Payment Conditions
+            </label>
+            <div class="slds-form-element__control">
+                <div class="slds-select_container">
+                    <select id="paymentOptions" class="slds-select" required="" onchange={getSelectedPaymentCondition}>
+                        <option value="">Select an option...</option>
+                        <template for:each={paymentConditions} for:item="paymentCondition">
+                            <option key={paymentCondition.Id} value={paymentCondition.Id}>{paymentCondition.Type}</option>
+                        </template>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div slot="footer">
+            <lightning-button variant="brand" label="Next" onclick={handleNext}></lightning-button>
+        </div>
+        
+        <div>
+            
+        </div>
+
+    </lightning-quick-action-panel>
+</template>
