@@ -14,18 +14,39 @@ public with sharing class PaymentConditionsController {
     * @return List<PaymentConditionsResponse> 
     **/
     @AuraEnabled
-    public static List<PaymentConditionsResponse> getPaymentConditions(){
-        List<PaymentConditionsResponse> paymentConditionList = new List<PaymentConditionsResponse>();
+    public static ActionResponse.Response getPaymentConditions(){
 
-        for(PaymentCondition__c condition : [
+        try {
+            List<PaymentConditionsResponse> paymentConditionResponseList = new List<PaymentConditionsResponse>();
+
+            for(PaymentCondition__c condition : [
+                 SELECT Id, Type__c
+                   FROM PaymentCondition__c
+               ORDER BY Type__c
+            ]) {
+                paymentConditionResponseList.add(new PaymentConditionsResponse(condition));
+            }
+
+            ActionResponse.Response response = new ActionResponse.Response(
+                false, '', JSON.serialize(paymentConditionResponseList)
+            );
+            return response; 
+                
+        } catch (Exception e) {
+            return new ActionResponse.Response(e);
+        }
+    }
+
+    public static PaymentCondition__c getPaymentCondition(String paymentConditionId) {
+
+        PaymentCondition__c condition = [
             SELECT Id, Type__c
               FROM PaymentCondition__c
-          ORDER BY Type__c
-        ]) {
-            paymentConditionList.add(new PaymentConditionsResponse(condition));
-        }
+             WHERE Id =: paymentConditionId
+             LIMIT 1
+         ];
 
-        return paymentConditionList;
+         return condition;
     }
 
     public class PaymentConditionsResponse {
