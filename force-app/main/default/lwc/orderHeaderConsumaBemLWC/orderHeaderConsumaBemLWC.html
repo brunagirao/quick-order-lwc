@@ -1,60 +1,376 @@
 <!-- sldsValidatorIgnore -->
 <template>
-    <lightning-quick-action-panel header="New Order">
 
-        <!-- Account Name -->
-        <div class="slds-p-bottom_small slds-p-top_small">
-            <lightning-input type="text" label="Account Name" value={accountName} readonly></lightning-input>
-        </div>
+    <div class="container">
+        <!-- Spinner -->
+        <template if:true={showSpinner}>
+            <div class="slds-is-relative slds-m-around_large slds-align_absolute-center" style="min-height: 300px; !important;">
+                <lightning-spinner alternative-text={LABEL.ORDER_SPINNER_TEXT} variant="brand"></lightning-spinner>
+            </div>
+        </template>
+        <template if:false={showSpinner}>
+            <!-- Header -->
+            <header class="container-progress-bar">
+                <!-- Progress Indicator -->
+                <lightning-progress-indicator current-step={step} type="path" variant="base">
+                    <lightning-progress-step label={LABEL.ORDER_HEADER_PROGRESS_BAR} value="1" onclick={nextPage}></lightning-progress-step>
+                    <lightning-progress-step label={LABEL.ORDER_ITEM_PROGRESS_BAR}   value="2" onclick={nextPage}></lightning-progress-step>
+                    <lightning-progress-step label={LABEL.ORDER_RESUME_PROGRESS_BAR} value="3" onclick={nextPage}></lightning-progress-step>
+                </lightning-progress-indicator>
+            </header>
 
-        <!-- Standart Pricebook -->
-        <div class="slds-p-bottom_small">
-            <lightning-input type="text" label="Pricebook" value={pricebookName} readonly></lightning-input>
-        </div>
+            <!-- First Page | Order Header -->
+            <div if:true={showFirstPage}>
+                <!-- Account Name -->
+                <lightning-layout>
+                    <lightning-layout-item flexibility="auto" padding="around-small" size="12">
+                        <lightning-input type="text" label={LABEL.ORDER_ACCOUNT_NAME} value={accountName} readonly required>
+                        </lightning-input>
+                    </lightning-layout-item>
+                </lightning-layout> 
 
-        <!-- Account Shipping Addresses -->
-        <div class="slds-form-element slds-p-bottom_small">
-            <label class="slds-form-element__label">
-                <abbr class="slds-required" title="required">*</abbr>
-                Account Address
-            </label>
-            <div class="slds-form-element__control">
-                <div class="slds-select_container">
-                    <select id="accountAddresses" class="slds-select" required="" onchange={getSelectedAccountAddress}>
-                        <option value="">Select an option...</option>
-                        <template for:each={accountAddresses} for:item="accountAddress">
-                            <option key={accountAddress.Id} value={accountAddress.Id}>{accountAddress.FullAddress}</option>
-                        </template>
-                    </select>
+                <!-- Account Name | Lookup Nescara
+                <lightning-layout>
+                    <lightning-layout-item padding="around-small"
+                    class="lookup" size="12" 
+                    small-device-size="12" 
+                    medium-device-size="6" 
+                    large-device-size="12">
+                        <c-lookup-nescara 
+                            class="disabled-account" 
+                            input-label="Account Name" 
+                            object-icon-name="standard:account"
+                            target-object={accountObject} 
+                            search-fields={accountSearchFields} 
+                            record-id={recordList.accountIdDisabled}
+                            list-item-options={accountWithDescriptionListItemOptions}
+                            parent-relation-field-list={accountParentRelationFieldList} 
+                            parent-record-list={accountParentRecordList}
+                            operator-list={accountOperators} 
+                            more-fields={accountMoreFields} 
+                            required
+                            disabled={disabledAccountLookup}>
+                        </c-lookup-nescara>
+                    </lightning-layout-item>
+                </lightning-layout>-->
+                
+                <!-- Standart Pricebook -->
+                <lightning-layout>
+                    <lightning-layout-item flexibility="auto" padding="around-small" size="12">
+                        <lightning-input  type="text" label={LABEL.ORDER_PRICEBOOK_NAME} value={pricebookName} readonly required></lightning-input>
+                    </lightning-layout-item> 
+                </lightning-layout> 
+
+                <!-- Account Address -->
+                <lightning-layout>
+                    <lightning-layout-item flexibility="auto" padding="around-small" size="8">
+                        <lightning-combobox dropdown-alignment="auto" label={LABEL.ORDER_ACCOUNT_ADDRESSES} value={addressValue} 
+                            placeholder={LABEL.ORDER_PICKLIST_SELECT_AN_OPTION} options={addressOptions} onchange={getSelectedAccountAddress} required>
+                        </lightning-combobox>
+                    </lightning-layout-item>
+                </lightning-layout>
+
+                <!-- Payment Conditions -->
+                <lightning-layout>
+                    <lightning-layout-item flexibility="auto" padding="around-small" size="8">
+                        <lightning-combobox dropdown-alignment="auto" label={LABEL.ORDER_PAYMENT_CONDITIONS} value={paymentValue} 
+                            placeholder={LABEL.ORDER_PICKLIST_SELECT_AN_OPTION} options={paymentOptions} onchange={getSelectedPaymentCondition} required>
+                        </lightning-combobox>
+                    </lightning-layout-item>
+                </lightning-layout>
+            </div>
+
+            <!-- Second Page | Order Itens -->
+            <div if:true={showSecondPage}>
+
+                <!-- Search Products -->
+                <lightning-layout>
+                    <lightning-layout-item flexibility="auto" padding="around-small" size="6">
+                        <lightning-input class="label-search-products" type="text" onchange={handleSearchProducts} 
+                         label={LABEL.ORDER_SEARCH_PRODUCT} placeholder={LABEL.ORDER_SEARCH_PRODUCT_TYPE_HERE}>
+                        </lightning-input>
+                    </lightning-layout-item>
+                </lightning-layout> 
+
+                <!-- Prices Info -->
+                <lightning-layout>
+                    <lightning-layout-item flexibility="auto" padding="around-small" size="3">
+                        <lightning-input class="label-total-order" type="number" formatter="currency" step="1" value={minimumTotalOrder}
+                            label={LABEL.ORDER_MININUM_TOTAL_ORDER} readonly>
+                        </lightning-input>
+                    </lightning-layout-item>
+                    <lightning-layout-item flexibility="auto" padding="around-small" size="3">
+                        <lightning-input class="label-total-order" type="number" formatter="currency" step="1" value={totalOrder} 
+                            label={LABEL.ORDER_TOTAL} readonly>
+                        </lightning-input>
+                    </lightning-layout-item>
+                    <lightning-layout-item flexibility="auto" padding="around-small" size="3">
+                        <lightning-input class="label-total-order" type="number" formatter="currency" step="1" value={totalPraticedOrder}
+                            label={LABEL.ORDER_TOTAL_PRACTICE} readonly>
+                        </lightning-input>
+                    </lightning-layout-item>
+                    <lightning-layout-item flexibility="auto" padding="around-small" size="3">
+                        <lightning-input class="label-total-order" type="number" step="1" value={totalOrderItens}
+                            label={LABEL.ORDER_TOTAL_ITENS} readonly>
+                        </lightning-input>
+                    </lightning-layout-item>
+                </lightning-layout>
+
+                <!-- List of Products Filter-->
+                <template if:true={pbeListFilter}>
+                    <template for:each={pbeListFilter} for:item="pbe">
+                        
+                        <lightning-card key={pbe.Id} variant="Narrow" title={pbe.ProductTitle}  icon-name="standard:price_book_entries"> 
+                            <lightning-button if:false={pbe.HasAddedToCart} data-pbe-id={pbe.Id} slot="actions" variant="brand" icon-name="utility:add" label="Add"
+                                onclick={addProductToCart}>
+                            </lightning-button>
+                            
+                            <lightning-button if:true={pbe.HasAddedToCart} data-pbe-id={pbe.Id} slot="actions" variant="destructive" icon-name="utility:delete"
+                                label="Remove" onclick={removeProductToCart}>
+                            </lightning-button>
+                        
+                            <lightning-layout>
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="3">
+                                    <lightning-input data-pbe-id={pbe.Id} type="number" formatter="currency" step="1" 
+                                        label={LABEL.ORDER_PRODUCT_LIST_PRICE} value={pbe.ListPrice} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="2">
+                                    <lightning-input data-pbe-id={pbe.Id} type="number" formatter="percent" step="0.01"
+                                        label={LABEL.ORDER_PRODUCT_DISCOUNT} value={pbe.Discount} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                                
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="2">
+                                    <lightning-input data-pbe-id={pbe.Id} onchange={handleProductQuantity} type="number" 
+                                        label={LABEL.ORDER_PRODUCT_QUANTITY} min="0" value={pbe.Quantity} required readonly={pbe.HasAddedToCart}>
+                                    </lightning-input>
+                                </lightning-layout-item>
+
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="2">
+                                    <lightning-input data-pbe-id={pbe.Id} onchange={handlePracticedPrice} type="number" formatter="currency" step="1" 
+                                        label={LABEL.ORDER_PRODUCT_PRACTICED_PRICE} value={pbe.PracticedPrice} required readonly={pbe.HasAddedToCart}>
+                                    </lightning-input>
+                                </lightning-layout-item>
+
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="3">
+                                    <lightning-input data-pbe-id={pbe.Id} type="number" formatter="currency" step="1" 
+                                        label={LABEL.ORDER_PRODUCT_SUBTOTAL} value={pbe.SubTotal} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                            </lightning-layout>
+                        </lightning-card>
+                    </template>
+                </template>
+
+                <!-- List of Products Added to Cart -->
+                <template if:true={hasProductAddedToCart}>
+                    <hr>
+                    <lightning-layout>
+                        <lightning-layout-item flexibility="auto" padding="around-small" size="6">
+                            <h2 class="header-products-cart">{LABEL.ORDER_ITEM_PRODUCT_ADDED_CART}</h2>
+                        </lightning-layout-item>
+                    </lightning-layout>
+
+                    <template for:each={productsAddedToCart} for:item="pbe">
+                
+                        <lightning-card key={pbe.Id} variant="Narrow" title={pbe.ProductTitle} icon-name="standard:price_book_entries">
+                            <lightning-button if:false={pbe.HasAddedToCart} data-pbe-id={pbe.Id} slot="actions" variant="brand"
+                                icon-name="utility:add" label="Add" onclick={addProductToCart}>
+                            </lightning-button>
+                
+                            <lightning-button if:true={pbe.HasAddedToCart} data-pbe-id={pbe.Id} slot="actions" variant="destructive"
+                                icon-name="utility:delete" label="Remove" onclick={removeProductToCart}>
+                            </lightning-button>
+                
+                            <lightning-layout>
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="3">
+                                    <lightning-input type="number" formatter="currency" step="1" 
+                                        label={LABEL.ORDER_PRODUCT_LIST_PRICE} value={pbe.ListPrice} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="2">
+                                    <lightning-input data-pbe-id={pbe.Id} type="number" formatter="percent" step="0.01" 
+                                        label={LABEL.ORDER_PRODUCT_DISCOUNT} value={pbe.Discount} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="1">
+                                    <lightning-input data-pbe-id={pbe.Id} onchange={handleProductQuantity} type="number" 
+                                        label={LABEL.ORDER_PRODUCT_QUANTITY} min="0" value={pbe.Quantity} required readonly={pbe.HasAddedToCart}>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="2">
+                                    <lightning-input data-pbe-id={pbe.Id} onchange={handlePracticedPrice} type="number" formatter="currency" step="1" 
+                                        label={LABEL.ORDER_PRODUCT_PRACTICED_PRICE} value={pbe.PracticedPrice} required readonly={pbe.HasAddedToCart}>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                
+                                <lightning-layout-item class="label-product-filter" flexibility="auto" padding="around-small" size="3">
+                                    <lightning-input data-pbe-id={pbe.Id} type="number" formatter="currency" step="1" 
+                                        label={LABEL.ORDER_PRODUCT_SUBTOTAL} value={pbe.SubTotal} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                            </lightning-layout>
+
+                        </lightning-card>
+                    </template>
+                </template>
+
+                <template if:false={hasProductAddedToCart}>
+                    <hr>
+                    <h2 class="header-products-empty-cart">{LABEL.ORDER_EMPTY_CART_TITLE}<br/>{LABEL.ORDER_EMPTY_CART_SUBTITLE}</h2>
+                </template>
+            </div>
+       
+
+            <!-- Third Page | Resume Order-->
+            <div if:true={showThirdPage}>
+                <lightning-card variant="Narrow" title="Order Resume" icon-name="standard:orders">
+                    <lightning-layout>
+                        <lightning-layout-item class="label-order-header-resume" flexibility="auto" padding="around-small" size="8">
+                            <lightning-input type="text" label={LABEL.ORDER_ACCOUNT_NAME} value={accountName} readonly>
+                            </lightning-input>
+                        </lightning-layout-item>
+                    </lightning-layout>
+
+                    <lightning-layout>
+                        <lightning-layout-item class="label-order-header-resume" flexibility="auto" padding="around-small" size="8">
+                            <lightning-input type="text" label={LABEL.ORDER_ACCOUNT_ADDRESS} value={accountAddressName} readonly>
+                            </lightning-input>
+                        </lightning-layout-item>
+                        
+                        <lightning-layout-item class="label-order-header-resume" flexibility="auto" padding="around-small" size="4">
+                            <lightning-input type="text" label={LABEL.ORDER_PAYMENT_CONDITION} value={paymentConditionName} readonly>
+                            </lightning-input>
+                        </lightning-layout-item>
+                    </lightning-layout>
+
+                    <lightning-layout>
+                        <lightning-layout-item class="label-order-header-resume" flexibility="auto" padding="around-small" size="4">
+                            <lightning-input type="number" formatter="currency" step="1" 
+                                label={LABEL.ORDER_TOTAL} value={totalOrder} readonly>
+                            </lightning-input>
+                        </lightning-layout-item>
+                        
+                        <lightning-layout-item class="label-order-header-resume" flexibility="auto" padding="around-small" size="4">
+                            <lightning-input type="number" formatter="currency" step="1" 
+                                label={LABEL.ORDER_TOTAL_PRACTICE} value={totalPraticedOrder} readonly>
+                            </lightning-input>
+                        </lightning-layout-item>
+
+                        <lightning-layout-item class="label-order-header-resume" flexibility="auto" padding="around-small" size="4">
+                            <lightning-input type="number" 
+                                label={LABEL.ORDER_TOTAL_ITENS} value={totalOrderItens} readonly>
+                            </lightning-input>
+                        </lightning-layout-item>
+                    </lightning-layout>
+
+                    <lightning-layout>
+                        <lightning-layout-item class="label-order-header-resume" flexibility="auto" padding="around-small" size="6">
+                            <lightning-textarea label={LABEL.ORDER_NOTES_INVOICE} onchange={handleNoteInvoice} placeholder="Type here..." value={noteInvoice} required>
+                            </lightning-textarea>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                </lightning-card>
+
+                <div>
+                    <hr>
+                    <lightning-layout>
+                        <lightning-layout-item flexibility="auto" padding="around-small" size="6">
+                            <h2 class="header-products-cart">{LABEL.ORDER_ITEM_PRODUCT_ADDED_CART}</h2>
+                        </lightning-layout-item>
+                    </lightning-layout>
+                    <template for:each={productsAddedToCart} for:item="pbe">
+                        <lightning-card key={pbe.Id} variant="Narrow" title={pbe.Name} icon-name="standard:price_book_entries">
+                            <lightning-layout> 
+                                <lightning-layout-item class="label-order-item-resume" flexibility="auto" padding="around-small" size="2">
+                                    <lightning-input type="number" formatter="currency" step="1" 
+                                        label={LABEL.ORDER_PRODUCT_LIST_PRICE} value={pbe.ListPrice} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                    
+                                <lightning-layout-item class="label-order-item-resume" flexibility="auto" padding="around-small" size="2">
+                                    <lightning-input data-pbe-id={pbe.Id} type="number" formatter="percent" step="0.01" 
+                                        label={LABEL.ORDER_PRODUCT_DISCOUNT} value={pbe.Discount} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                    
+                                <lightning-layout-item class="label-order-item-resume" flexibility="auto" padding="around-small" size="2    ">
+                                    <lightning-input data-pbe-id={pbe.Id} onchange={handleProductQuantity} type="number" 
+                                        label={LABEL.ORDER_PRODUCT_QUANTITY} value={pbe.Quantity} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                    
+                                <lightning-layout-item class="label-order-item-resume" flexibility="auto" padding="around-small" size="2">
+                                    <lightning-input data-pbe-id={pbe.Id} onchange={handlePracticedPrice} type="number" formatter="currency" step="1" 
+                                        label={LABEL.ORDER_PRODUCT_PRACTICED_PRICE} value={pbe.PracticedPrice}  readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+                    
+                                <lightning-layout-item class="label-order-item-resume" flexibility="auto" padding="around-small" size="2">
+                                    <lightning-input data-pbe-id={pbe.Id} type="number" formatter="currency" step="1" 
+                                        label={LABEL.ORDER_PRODUCT_SUBTOTAL} value={pbe.SubTotal} readonly>
+                                    </lightning-input>
+                                </lightning-layout-item>
+
+                            </lightning-layout>
+                        </lightning-card>
+                    </template>
                 </div>
             </div>
-        </div>
 
-        <!-- Account Payment Conditions -->
-        <div class="slds-form-element slds-p-bottom_small">
-            <label class="slds-form-element__label">
-                <abbr class="slds-required" title="required">*</abbr>
-                    Payment Conditions
-            </label>
-            <div class="slds-form-element__control">
-                <div class="slds-select_container">
-                    <select id="paymentOptions" class="slds-select" required="" onchange={getSelectedPaymentCondition}>
-                        <option value="">Select an option...</option>
-                        <template for:each={paymentConditions} for:item="paymentCondition">
-                            <option key={paymentCondition.Id} value={paymentCondition.Id}>{paymentCondition.Type}</option>
-                        </template>
-                    </select>
-                </div>
-            </div>
-        </div>
-        
-        <div slot="footer">
-            <lightning-button variant="brand" label="Next" onclick={handleNext}></lightning-button>
-        </div>
-        
-        <div>
+            <!-- Footer -->
+            <footer class="slds-modal__footer slds-align_absolute-right" style="padding: 0.50rem 1rem; margin-top: 15px">
+                <template if:true={showFirstPage}>
+                    <lightning-button label="Next" variant="brand" value="2" onclick={nextPage}></lightning-button>
+                </template>
+                <template if:true={showSecondPage}>
+                    <lightning-button class="slds-p-right_xx-small" label="Previous" variant="neutral" value="1"
+                        onclick={previousPage}></lightning-button>
+                    <lightning-button label="Next" variant="brand" value="3" onclick={nextPage}></lightning-button>
+                </template>
+                <template if:true={showThirdPage}>
+                    <lightning-button class="slds-p-right_xx-small" label="Previous" variant="neutral" value="2"
+                        onclick={previousPage}></lightning-button>
+                    <lightning-button label="Save" variant="brand" onclick={insertOrder}></lightning-button>
+                </template>
+            </footer>
+
+            <!-- Modal/PopUp -->
+            <div if:true={isShowModal}>
+                <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                    aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                    <div class="slds-modal__container slds-text-longform">
+                        <!-- modal header start -->
+                        <header class="slds-modal__header">
+                          <!-- <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={hideModalBox}>
+                                <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small">
+                                </lightning-icon>
+                                <span class="slds-assistive-text">Close</span>
+                            </button> -->
+                            <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">{modalTitle}</h2>
+                        </header>
             
-        </div>
-
-    </lightning-quick-action-panel>
+                        <!-- modal body start -->
+                        <div class="slds-modal__content slds-p-around_medium " id="modal-content-id-1">
+                            <h3 class="slds-text-heading_small slds-hyphenate">{modalSubtitle}</h3>
+                            <ul>
+                                <li class="slds-text-color_error">{modalDescription}</li>
+                            </ul>
+                        </div>
+            
+                        <!-- modal footer start-->
+                        <footer class="slds-modal__footer">
+                            <button class="slds-button slds-button_neutral" onclick={hideModalBox}>Close</button>
+                        </footer>
+                    </div>
+                </section>
+                <div class="slds-backdrop slds-backdrop_open"></div>
+            </div>
+        </template>
+    </div>
 </template>
