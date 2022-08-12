@@ -1,4 +1,6 @@
 <aura:component implements="force:lightningQuickActionWithoutHeader,force:hasRecordId">
-
-<c:orderHeaderConsumaBemLWC recordId="{!v.recordId}"></c:orderHeaderConsumaBemLWC>
+    <aura:attribute name="recordId" type="String"></aura:attribute>
+    <lightning:navigation aura:id="navService" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <!-- <c:orderHeaderConsumaBemLWC recordId="{!v.recordId}"></c:orderHeaderConsumaBemLWC> -->
 </aura:component>
