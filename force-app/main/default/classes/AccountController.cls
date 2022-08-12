@@ -16,16 +16,26 @@ public with sharing class AccountController {
     * @return String 
     **/
     @AuraEnabled
-    public static String getAccountName(String accountId) {
+    public static ActionResponse.Response getAccountById(String accountId) {
+        try {
 
-        Account account = [
-            SELECT Id, Name
-              FROM Account
-             WHERE Id =: accountId
-             LIMIT 1
-        ];
+            Account account = [
+                SELECT Id, Name
+                  FROM Account
+                 WHERE Id =: accountId
+                 LIMIT 1
+            ];
 
-        return account.Name;
+            AccountResponse accountResponse = new AccountResponse(account);
+            
+            ActionResponse.Response response = new ActionResponse.Response(
+                false, '', JSON.serialize(accountResponse)
+            );
+            return response;
+
+        } catch (Exception e) {
+            return new ActionResponse.Response(e);
+        } 
     }
 
     /**
@@ -34,20 +44,56 @@ public with sharing class AccountController {
     * @return List<AccountAddressResponse> 
     **/
     @AuraEnabled
-    public static List<AccountAddressResponse> getAccountAddresses(String accountId){
+    public static ActionResponse.Response getAccountAddressesByAccountId(String accountId){
         
-        List<AccountAddressResponse> accountAddressList = new List<AccountAddressResponse>();
+        try {
+            List<AccountAddressResponse> accountAddressResponseList = new List<AccountAddressResponse>();
         
-        for(AccountAddress__c address : [
-            SELECT Id, FullAddress__c
-              FROM AccountAddress__c
-             WHERE Account__c =: accountId
-        ]) {
-            accountAddressList.add(new AccountAddressResponse(address));
+            for(AccountAddress__c address : [
+                SELECT Id, FullAddress__c
+                  FROM AccountAddress__c
+                 WHERE Account__c =: accountId
+            ]) {
+                accountAddressResponseList.add(new AccountAddressResponse(address));
+            }
+
+            ActionResponse.Response response = new ActionResponse.Response(
+                false, '', JSON.serialize(accountAddressResponseList)
+            );
+            return response; 
+        } catch (Exception e) {
+            return new ActionResponse.Response(e);
         }
 
-        return accountAddressList;
     } 
+
+    public static AccountAddress__c getAccountAddress(String accountId, String addressId) {
+        
+        AccountAddress__c accountAddress = [
+            SELECT Id, Name, Street__c, 
+                   City__c, State__c, PostalCode__c, 
+                   Country__c, Account__c, FullAddress__c
+              FROM AccountAddress__c
+             WHERE Id         =: addressId
+               AND Account__c =: accountId
+             LIMIT 1
+        ];
+
+        return accountAddress;
+    }
+
+
+    public class AccountResponse {
+        @AuraEnabled public String Id   {get; set; }
+        @AuraEnabled public String Name {get; set; }
+
+        public AccountResponse(){}
+
+        public AccountResponse(Account account) {
+            this.Id   = account.Id;
+            this.Name = account.Name;
+        }
+    }
 
 
     public class AccountAddressResponse {
@@ -61,5 +107,7 @@ public with sharing class AccountController {
             this.FullAddress = address.FullAddress__c;
         }
     }
+
+    public class AccountControllerException extends Exception{}
 
 }
